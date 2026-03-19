@@ -133,6 +133,8 @@ img {
             <a href="https://www.instagram.com/oliiverrg" target="_blank">instagram</a>
             <a href="https://www.tiktok.com/@oliver.org" target="_blank">tiktok</a>
             <a href="https://discord.com/users/675104449160806400">discord</a>
+            <a href="https://www.twitch.tv/jeroldy">twitch</a>
+            <a href="https://www.youtube.com/@jeroldyt">youtube</a>
         </div>
     </div>
 </div>
@@ -147,7 +149,31 @@ const music = document.getElementById("music");
 const muteBtn = document.getElementById("muteBtn");
 const container = document.getElementById("main");
 
-/* ENTER FADE + AUDIO FADE IN */
+let fadeInterval; // Stores the current fading process
+let isMuted = false;
+
+/* REUSABLE FADE FUNCTION */
+function fadeAudio(targetVolume) {
+    clearInterval(fadeInterval); // Stop any existing fade
+    
+    const step = 0.05; // Amount to change per tick
+    const speed = 50;  // Milliseconds per tick
+
+    fadeInterval = setInterval(() => {
+        if (music.volume < targetVolume) {
+            music.volume = Math.min(music.volume + step, targetVolume);
+        } else if (music.volume > targetVolume) {
+            music.volume = Math.max(music.volume - step, targetVolume);
+        }
+
+        // Once target is reached, clear the interval
+        if (music.volume === targetVolume) {
+            clearInterval(fadeInterval);
+        }
+    }, speed);
+}
+
+/* ENTER SCREEN LOGIC */
 enter.addEventListener("click", () => {
     enter.style.opacity = "0";
 
@@ -155,27 +181,22 @@ enter.addEventListener("click", () => {
         enter.style.display = "none";
     }, 700);
 
-    music.volume = 0;
+    music.volume = 0; // Start at silent
     music.play();
-
-    let vol = 0;
-    const fade = setInterval(() => {
-        if (vol < 1) {
-            vol += 0.05;
-            music.volume = vol;
-        } else {
-            clearInterval(fade);
-        }
-    }, 100);
+    fadeAudio(1);    // Smoothly fade to 100% volume
 });
 
-/* MUTE TOGGLE (FIXED) */
-let muted = false;
-
+/* MUTE TOGGLE LOGIC */
 muteBtn.addEventListener("click", () => {
-    muted = !muted;
-    music.muted = muted;
-    muteBtn.innerText = muted ? "🔇" : "🔊";
+    isMuted = !isMuted;
+    
+    if (isMuted) {
+        fadeAudio(0); // Fade out
+        muteBtn.innerText = "🔇";
+    } else {
+        fadeAudio(1); // Fade in
+        muteBtn.innerText = "🔊";
+    }
 });
 
 /* TYPING EFFECT */
@@ -191,7 +212,7 @@ function type() {
 }
 type();
 
-/* TILT / PARALLAX EFFECT */
+/* PARALLAX EFFECT */
 document.addEventListener("mousemove", (e) => {
     const x = (window.innerWidth / 2 - e.clientX) / 25;
     const y = (window.innerHeight / 2 - e.clientY) / 25;
