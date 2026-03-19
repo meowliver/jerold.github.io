@@ -191,7 +191,7 @@ document.addEventListener("visibilitychange", () => {
         fadeAudio(0);
     } else {
         if (enter.style.display === "none" && !isMuted) {
-            fadeAudio(0.5);
+            fadeAudio(0.3);
         }
     }
 });
@@ -204,7 +204,7 @@ enter.addEventListener("click", () => {
     
     music.volume = 0;
     music.play();
-    fadeAudio(0.5);
+    fadeAudio(0.3);
 });
 
 /* --- MUTE TOGGLE --- */
@@ -214,7 +214,7 @@ muteBtn.addEventListener("click", () => {
         fadeAudio(0);
         muteBtn.innerText = "🔇";
     } else {
-        fadeAudio(0.5);
+        fadeAudio(0.3);
         muteBtn.innerText = "🔊";
     }
 });
