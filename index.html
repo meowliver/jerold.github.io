@@ -11,9 +11,9 @@ body {
     font-family: Arial, sans-serif;
     color: white;
     overflow: hidden;
+    background-color: black;
 }
 
-/* Background video */
 video {
     position: fixed;
     width: 100%;
@@ -22,7 +22,6 @@ video {
     z-index: -2;
 }
 
-/* Dark overlay */
 .overlay {
     position: fixed;
     width: 100%;
@@ -31,16 +30,13 @@ video {
     z-index: -1;
 }
 
-/* ENTER SCREEN */
 #enter {
     position: fixed;
     width: 100%;
     height: 100%;
-    /* Dark semi-transparent mask */
     background: rgba(0, 0, 0, 0.7); 
-    /* The magic blur effect */
     backdrop-filter: blur(25px); 
-    -webkit-backdrop-filter: blur(25px); /* Safari support */
+    -webkit-backdrop-filter: blur(25px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -50,11 +46,10 @@ video {
     text-transform: uppercase;
     cursor: pointer;
     z-index: 10;
-    /* Transition opacity and blur together */
     transition: opacity 0.8s ease, backdrop-filter 0.8s ease;
 }
-    
-/* MAIN CONTAINER (PERFECT CENTER) */
+
+/* Added perspective for a better 3D effect */
 .wrapper {
     position: fixed;
     width: 100%;
@@ -62,14 +57,15 @@ video {
     display: flex;
     justify-content: center;
     align-items: center;
+    perspective: 1000px; 
 }
 
 .container {
     text-align: center;
-    transition: transform 0.1s ease;
+    /* Removed the CSS transition on transform to let JS handle it smoothly */
+    will-change: transform; 
 }
 
-/* GLOW TEXT */
 h1 {
     font-size: 3rem;
     animation: glow 2s infinite alternate;
@@ -80,14 +76,12 @@ h1 {
     to { text-shadow: 0 0 30px white, 0 0 60px white; }
 }
 
-/* PROFILE */
 img {
     width: 120px;
     border-radius: 50%;
     margin-bottom: 10px;
 }
 
-/* LINKS */
 .links a {
     display: block;
     margin: 10px auto;
@@ -105,7 +99,6 @@ img {
     transform: scale(1.05);
 }
 
-/* MUTE BUTTON */
 #muteBtn {
     position: fixed;
     top: 15px;
@@ -115,6 +108,7 @@ img {
     border-radius: 10px;
     cursor: pointer;
     z-index: 5;
+    user-select: none;
 }
 </style>
 </head>
@@ -157,15 +151,14 @@ const music = document.getElementById("music");
 const muteBtn = document.getElementById("muteBtn");
 const container = document.getElementById("main");
 
-let fadeInterval; // Stores the current fading process
+let fadeInterval;
 let isMuted = false;
 
-/* REUSABLE FADE FUNCTION */
+/* AUDIO FADE LOGIC */
 function fadeAudio(targetVolume) {
-    clearInterval(fadeInterval); // Stop any existing fade
-    
-    const step = 0.05; // Amount to change per tick
-    const speed = 50;  // Milliseconds per tick
+    clearInterval(fadeInterval);
+    const step = 0.05;
+    const speed = 50;
 
     fadeInterval = setInterval(() => {
         if (music.volume < targetVolume) {
@@ -174,35 +167,28 @@ function fadeAudio(targetVolume) {
             music.volume = Math.max(music.volume - step, targetVolume);
         }
 
-        // Once target is reached, clear the interval
         if (music.volume === targetVolume) {
             clearInterval(fadeInterval);
         }
     }, speed);
 }
 
-/* ENTER SCREEN LOGIC */
 enter.addEventListener("click", () => {
     enter.style.opacity = "0";
-
-    setTimeout(() => {
-        enter.style.display = "none";
-    }, 700);
-
-    music.volume = 0; // Start at silent
+    enter.style.backdropFilter = "blur(0px)";
+    setTimeout(() => { enter.style.display = "none"; }, 800);
+    music.volume = 0;
     music.play();
-    fadeAudio(1);    // Smoothly fade to 100% volume
+    fadeAudio(1);
 });
 
-/* MUTE TOGGLE LOGIC */
 muteBtn.addEventListener("click", () => {
     isMuted = !isMuted;
-    
     if (isMuted) {
-        fadeAudio(0); // Fade out
+        fadeAudio(0);
         muteBtn.innerText = "🔇";
     } else {
-        fadeAudio(1); // Fade in
+        fadeAudio(1);
         muteBtn.innerText = "🔊";
     }
 });
@@ -210,7 +196,6 @@ muteBtn.addEventListener("click", () => {
 /* TYPING EFFECT */
 const text = "jeroldy";
 let i = 0;
-
 function type() {
     if (i < text.length) {
         document.getElementById("name").innerHTML += text.charAt(i);
@@ -220,13 +205,34 @@ function type() {
 }
 type();
 
-/* PARALLAX EFFECT */
-document.addEventListener("mousemove", (e) => {
-    const x = (window.innerWidth / 2 - e.clientX) / 25;
-    const y = (window.innerHeight / 2 - e.clientY) / 25;
+/* --- NEW SMOOTH PARALLAX LOGIC --- */
+let targetX = 0;
+let targetY = 0;
+let currentX = 0;
+let currentY = 0;
+const friction = 0.08; // LOWER = Smoother/Slower (Try 0.05 to 0.1)
 
-    container.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+document.addEventListener("mousemove", (e) => {
+    // Calculate the target rotation based on mouse position
+    targetX = (window.innerWidth / 2 - e.clientX) / 20;
+    targetY = (window.innerHeight / 2 - e.clientY) / 20;
 });
+
+function animateParallax() {
+    // Linear Interpolation (Lerp) formula:
+    // current = current + (target - current) * friction
+    currentX += (targetX - currentX) * friction;
+    currentY += (targetY - currentY) * friction;
+
+    // Apply the transformation
+    container.style.transform = `rotateY(${currentX}deg) rotateX(${currentY}deg)`;
+
+    // Keep the loop running
+    requestAnimationFrame(animateParallax);
+}
+
+// Start the animation loop
+animateParallax();
 </script>
 
 </body>
